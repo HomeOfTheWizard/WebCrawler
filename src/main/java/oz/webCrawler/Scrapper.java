@@ -18,18 +18,36 @@ public class Scrapper{
 	
 	WebClient webClient;
 	private URI baseURI;
-	
-	public Scrapper(URI baseURI) {
+
+	public Scrapper(String baseURI) {
+		this.baseURI = checkIfBaseURIisValid(baseURI);
+		
 		webClient = new WebClient(BrowserVersion.FIREFOX_60);
 		webClient.getOptions().setCssEnabled(false);  
 		webClient.getOptions().setJavaScriptEnabled(false);
 //		webClient.waitForBackgroundJavaScript(3000);
 		webClient.getOptions().setRedirectEnabled(true);
-		
-		this.baseURI = baseURI;
 	}
 	
-	//Nullable
+	public URI getBaseURI() {
+		return baseURI;
+	}
+	
+	public void setBaseURI(URI destinationURI) {
+		this.baseURI = destinationURI;
+	}
+	
+	private URI checkIfBaseURIisValid(String baseUrl) {
+		URI baseURI = null;
+		try {
+			baseURI = ScrappinUtils.getURLIfCorrectlyFormatted(baseUrl);
+		} catch (MalformedURLException | URISyntaxException e) {
+			throw new IllegalArgumentException();
+		}
+		return baseURI;
+	}
+	
+	//@Nullable
 	public ScrappinURIsResult getURIListfromParentURI(URI parentURI){
 		System.out.println("scrappin URI: " + parentURI);
 		
@@ -70,7 +88,7 @@ public class Scrapper{
 		}
 	}
 
-	//	@Nullable
+	//@Nullable
 	private HtmlPage getPage(URI url) {
 		try {
 			HtmlPage page = webClient.getPage(url.toURL());
@@ -84,4 +102,11 @@ public class Scrapper{
 		}
 		return null;
 	}
+	
+	
+	@Override
+	public Scrapper clone() {
+		return new Scrapper(baseURI.toString());
+	}
+
 }

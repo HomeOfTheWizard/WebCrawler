@@ -32,10 +32,12 @@ public class SiteCrawlerTest{
 		java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF); 
 		
 		//Given
-		SiteCrawler crawler = new SiteCrawler();
+		Scrapper scrapper = new Scrapper(baseUrlStr);
+    	CrawlinTask crawlingTask = new CrawlinTask(scrapper);
+    	SiteCrawler crawler = new SiteCrawler(crawlingTask);
 		
 		//when
-		Map<URI, Set<URI>> urlMap = crawler.getSiteMap(baseUrlStr);
+		Map<URI, Set<URI>> urlMap = crawler.getSiteMap();
 		
 		//then
 		Assertions.assertThat(urlMap.get(urlBase)).isNotEmpty().contains(urlPricing);
@@ -44,10 +46,12 @@ public class SiteCrawlerTest{
 	@Test
 	public void crawlerCanGetUrlListFromChildUrl() throws MalformedURLException, URISyntaxException{
 		//Given
-		SiteCrawler crawler = new SiteCrawler();
+		Scrapper scrapper = new Scrapper(baseUrlStr);
+    	CrawlinTask crawlingTask = new CrawlinTask(scrapper);
+    	SiteCrawler crawler = new SiteCrawler(crawlingTask);
 		
 		//when
-		Map<URI, Set<URI>> urlMap = crawler.getSiteMap(baseUrlStr);
+		Map<URI, Set<URI>> urlMap = crawler.getSiteMap();
 		
 		//then
 		Assertions.assertThat(urlMap.keySet()).isNotNull().isNotEmpty().contains(urlAbout);

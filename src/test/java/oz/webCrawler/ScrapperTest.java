@@ -37,7 +37,7 @@ public class ScrapperTest{
 	@Test
 	public void scrapper_GivenABaseURL_CanGetASingleChildUrl() {
 		//Given
-		Scrapper scrapper = new Scrapper(urlBase);
+		Scrapper scrapper = new Scrapper(baseUrlStr);
 		
 		//when
 		ScrappinURIsResult urlList = scrapper.getURIListfromParentURI(urlBase);
@@ -49,7 +49,7 @@ public class ScrapperTest{
 	@Test
 	public void scrapper_GivenABaseURL_CanGetASingleChildUrl_WhenChildIsRelative() {
 		//Given
-		Scrapper scrapper = new Scrapper(urlBase);
+		Scrapper scrapper = new Scrapper(baseUrlStr);
 		
 		//when
 		ScrappinURIsResult urlList = scrapper.getURIListfromParentURI(urlAbout);
