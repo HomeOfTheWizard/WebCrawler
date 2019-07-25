@@ -1,16 +1,7 @@
 package oz.webCrawler;
 
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-
-/**
- * Hello world!
- *
- */
 public class CrawlerAppRunner 
-{
-	
+{	
     public static void main( String[] args )
     {
         try {
@@ -23,7 +14,8 @@ public class CrawlerAppRunner
     }
     
     public void run(String baseURI) throws IllegalArgumentException{
-    	Scrapper scrapper = new Scrapper(baseURI);
+    	WebClientFactory factoryInstance = WebClientFactory.INSTANCE;
+    	Scrapper scrapper = new Scrapper(baseURI, factoryInstance);
     	CrawlinTask crawlingTask = new CrawlinTask(scrapper);
     	SiteCrawler crawler = new SiteCrawler(crawlingTask);
     	crawler.getSiteMap();

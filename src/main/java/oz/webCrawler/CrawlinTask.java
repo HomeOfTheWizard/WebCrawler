@@ -2,7 +2,6 @@ package oz.webCrawler;
 
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.RecursiveAction;
@@ -16,7 +15,7 @@ public class CrawlinTask extends RecursiveAction{
 	
 	private URI parentURI;
 	private boolean isFirstCrawl;
-	private CrawlinResult crawlinResult;
+	public CrawlinResult crawlinResult;
 	private Scrapper scrapper;
 	
 	public CrawlinTask( Scrapper scrapper, URI parentURI, CrawlinResult crawlinResult) {
@@ -36,13 +35,11 @@ public class CrawlinTask extends RecursiveAction{
 	
 	@Override
 	protected void compute() {
-		if( crawlinResult.getResultMap().putIfAbsent(parentURI, new HashSet<URI>()) == null ) {
 		
-			ScrappinURIsResult scrappinURIsResult = scrappParentURIandGetChildURIs();
-			System.out.println("got scrappin result for URI: " + parentURI);
-			
-			processScrappinResult(scrappinURIsResult);	
-		}
+		ScrappinURIsResult scrappinURIsResult = scrappParentURIandGetChildURIs();
+		System.out.println("got scrappin result for URI: " + parentURI);
+		
+		processScrappinResult(scrappinURIsResult);	
 	}
 	
 	
@@ -63,14 +60,14 @@ public class CrawlinTask extends RecursiveAction{
 
 	
 	private void tagIfRedirectedOrFailed(ScrappinURIsResult scrappinURIsResult) {
-		if(scrappinURIsResult == null)									{ crawlinResult.getRedirectMap().put(parentURI, parentURI); return; }
-		if(!scrappinURIsResult.destinationURI.equals(parentURI)) 		crawlinResult.getRedirectMap().put(parentURI, scrappinURIsResult.destinationURI);
+		if(scrappinURIsResult == null)									{ crawlinResult.putRedirect(parentURI, parentURI); return; }
+		if(!scrappinURIsResult.destinationURI.equals(parentURI)) 		crawlinResult.putRedirect(parentURI, scrappinURIsResult.destinationURI);
 		if(isFirstCrawl)												scrapper.setBaseURI( scrappinURIsResult.destinationURI );
 	}
 	
 	
 	private void treatValidScrappinResult(ScrappinURIsResult scrappinURIsResult) {
-		crawlinResult.getResultMap().put(scrappinURIsResult.destinationURI, scrappinURIsResult.getResult()); 	
+		crawlinResult.putResult(scrappinURIsResult.destinationURI, scrappinURIsResult.getResult()); 	
 		filterChildURISetFromAlreadyCrawledPages(scrappinURIsResult);
 		crawlThroughChildURIs(scrappinURIsResult.getResult());
 	}
@@ -78,35 +75,29 @@ public class CrawlinTask extends RecursiveAction{
 
 	private void filterChildURISetFromAlreadyCrawledPages(ScrappinURIsResult scrappinURIsResult) {
 		scrappinURIsResult.getResult()
-		.removeIf( uri -> crawlinResult.getResultMap().containsKey(getDestinationIfRedirected(uri)) || crawlinResult.getResultMap().containsKey(uri) || crawlinResult.getRedirectMap().containsValue(uri));
+		.removeIf( uri -> crawlinResult.isRedirectedAlreadyInResults(uri) || crawlinResult.containsResultForKey(uri) );
 		
-	}
-
-	
-	private URI getDestinationIfRedirected( URI uri) {
-		return crawlinResult.getRedirectMap().containsKey(uri) ? crawlinResult.getRedirectMap().get(uri) : uri;
 	}
 
 	
 	private void crawlThroughChildURIs(Set<URI> childURISet) {
 		List<CrawlinTask> tasksToFork = new ArrayList<>();
 		for(URI uri : childURISet) {
-			CrawlinTask task = new CrawlinTask(scrapper.clone(), uri, crawlinResult);
-			tasksToFork.add(task);
-			task.fork();
+			
+			if(crawlinResult.tagAsProcessingIfNotAlready(uri)) {
+				CrawlinTask task = new CrawlinTask(scrapper.clone(), uri, crawlinResult);
+				tasksToFork.add(task);
+				task.fork();
+			}
 		}
 		tasksToFork.forEach(task -> task.join());
 	}
 
 	
-	public CrawlinTask decorateResults() {
+	public CrawlinTask cleanUpResults() {
 		this.crawlinResult.getResultMap().keySet().removeAll(this.crawlinResult.getRedirectMap().keySet());
 		return this;
 		
 	}
 
-	
-	public CrawlinResult getCrawlinResult() {
-		return this.crawlinResult;
-	}
 }

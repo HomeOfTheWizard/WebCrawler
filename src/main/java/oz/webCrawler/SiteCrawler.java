@@ -14,7 +14,13 @@ public class SiteCrawler{
 	}
 	
 	public Map<URI, Set<URI>> getSiteMap() {
-		return CrawlFromBaseURIAndGetSiteMap();
+		Map<URI, Set<URI>> result = CrawlFromBaseURIAndGetSiteMap();
+				
+		System.out.println("\n\n##############################################\nCrawling result found following pages:");
+		result.keySet().stream().sorted().forEach(key -> System.out.println(key));
+		System.out.println("\ntotal of:"+ result.keySet().size()+" pages found");
+		
+		return result;
 	}
 
 	private Map<URI, Set<URI>> CrawlFromBaseURIAndGetSiteMap() {
@@ -22,11 +28,7 @@ public class SiteCrawler{
 		ForkJoinPool fjPool = ForkJoinPool.commonPool();
 		fjPool.invoke(crawler);
 		
-		CrawlinResult result = crawler.decorateResults().getCrawlinResult();
-		
-		System.out.println("\n\n##############################################\nCrawling result found following pages:");
-		result.getResultMap().keySet().stream().sorted().forEach(key -> System.out.println(key));
-		System.out.println("\ntotal of:"+ result.getResultMap().keySet().size()+" pages found");
+		CrawlinResult result = crawler.cleanUpResults().crawlinResult;
 		
 		return result.getResultMap();
 	}

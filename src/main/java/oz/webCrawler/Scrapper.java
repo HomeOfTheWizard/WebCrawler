@@ -4,29 +4,26 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
-import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
 import com.gargoylesoftware.htmlunit.WebClient;
 import com.gargoylesoftware.htmlunit.html.HtmlAnchor;
 import com.gargoylesoftware.htmlunit.html.HtmlPage;
 
+
 public class Scrapper{
 	
-	WebClient webClient;
+	private WebClient webClient;
 	private URI baseURI;
+	private WebClientFactory factory;
 
-	public Scrapper(String baseURI) {
+	public Scrapper(String baseURI, WebClientFactory factory) {
 		this.baseURI = checkIfBaseURIisValid(baseURI);
-		
-		webClient = new WebClient(BrowserVersion.FIREFOX_60);
-		webClient.getOptions().setCssEnabled(false);  
-		webClient.getOptions().setJavaScriptEnabled(false);
-//		webClient.waitForBackgroundJavaScript(3000);
-		webClient.getOptions().setRedirectEnabled(true);
+		this.factory = factory;
+		this.webClient = factory.getWebClient();
 	}
 	
 	public URI getBaseURI() {
@@ -37,7 +34,8 @@ public class Scrapper{
 		this.baseURI = destinationURI;
 	}
 	
-	private URI checkIfBaseURIisValid(String baseUrl) {
+	
+	static private URI checkIfBaseURIisValid(String baseUrl) {
 		URI baseURI = null;
 		try {
 			baseURI = ScrappinUtils.getURLIfCorrectlyFormatted(baseUrl);
@@ -47,21 +45,24 @@ public class Scrapper{
 		return baseURI;
 	}
 	
+	
 	//@Nullable
 	public ScrappinURIsResult getURIListfromParentURI(URI parentURI){
 		System.out.println("scrappin URI: " + parentURI);
 		
 		HtmlPage page = getPage(parentURI);
-		if(page!=null) 
+		if(page!=null) 	
 			return getURIListFromPage(page, parentURI);
-		else 
+		else 			
 			return null;
 	}
 
+	
 	private ScrappinURIsResult getURIListFromPage(HtmlPage page, URI parentURI) {
-		parentURI = ScrappinUtils.getDestinationURIIfRedirected(parentURI, page);
+		URI destinationURI = ScrappinUtils.getDestinationURIIfRedirected(parentURI, page);
 		Set<URI> resultURISet = getURISetFromPage(page);
-		return new ScrappinURIsResult(parentURI, resultURISet);
+		
+		return new ScrappinURIsResult(destinationURI, resultURISet);
 	}
 
 	
@@ -71,20 +72,21 @@ public class Scrapper{
 		return uriSet;
 	}
 	
-	//TODO refactor	
+	
 	private Set<URI> getURISetFromListOfHtmlAnchores(List<HtmlAnchor> listAnchores) {
-		Set<URI> resultSet = new HashSet<>();
-		listAnchores.stream().forEach(anchor -> getInternalURISetFromAnchorList(anchor, resultSet));
-		return resultSet;
+		return listAnchores.stream()
+			.map(anchor -> transformAnchorToURL(anchor))
+			.filter(uri -> uri != null)
+			.filter(uri -> ScrappinUtils.isInternal(baseURI, uri))
+			.collect(Collectors.toSet());
 	}
 
-	//TODO refactor
-	private void getInternalURISetFromAnchorList(HtmlAnchor anchor, Set<URI> resultSet) {
+	private URI transformAnchorToURL(HtmlAnchor anchor) {
 		try {
-			URI uri = ScrappinUtils.transformIfRelativeToAbsoluteURL(baseURI,anchor.getHrefAttribute());
-			if(ScrappinUtils.isInternal(baseURI, uri)) resultSet.add(uri);
+			return ScrappinUtils.transformIfRelativeToAbsoluteURL(baseURI,anchor.getHrefAttribute());
 		} catch (MalformedURLException | URISyntaxException e) {
 			System.out.println("anchor link found: "+anchor.getHrefAttribute()+" on page is syncactically not a valid URL");
+			return null;
 		}
 	}
 
@@ -98,7 +100,7 @@ public class Scrapper{
         } catch (ClassCastException ccex) {
         	System.out.println("URL: "+ url.toString() +"\nIs not pointing to an html page. " + ccex.getMessage());
         } catch (FailingHttpStatusCodeException fhhtpex) {
-        	System.out.println("URL: "+ url.toString() +"\nIs returning failing htmp code:" + fhhtpex.getStatusCode() + "\n with message:" + fhhtpex.getMessage());
+        	System.out.println("URL: "+ url.toString() +"\nIs returning failing html code:" + fhhtpex.getStatusCode() + "\n with message:" + fhhtpex.getMessage());
 		}
 		return null;
 	}
@@ -106,7 +108,7 @@ public class Scrapper{
 	
 	@Override
 	public Scrapper clone() {
-		return new Scrapper(baseURI.toString());
+		return new Scrapper(baseURI.toString(), factory);
 	}
 
 }

@@ -1,5 +1,8 @@
 package oz.webCrawler;
 
+import static org.mockito.Mockito.when;
+
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -11,10 +14,16 @@ import java.util.logging.Level;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
+
+import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
+import com.gargoylesoftware.htmlunit.WebClient;
+
 
 public class SiteCrawlerTest{
 	
 	String baseUrlStr;
+	URI urlBaseDest;
 	URI urlAbout;
 	URI urlPricing;
 	URI urlBase;
@@ -22,17 +31,17 @@ public class SiteCrawlerTest{
 	@Before
 	public void before() throws MalformedURLException, URISyntaxException {
 		baseUrlStr = "https://babylonhealth.com";
+		urlBaseDest = URI.create("https://www.babylonhealth.com");
 		urlBase = new URL(baseUrlStr).toURI();
 		urlAbout = URI.create("https://www.babylonhealth.com/about");
 		urlPricing = URI.create("https://www.babylonhealth.com/pricing");
 	}
 
 	@Test
-	public void crawlerCanGetUrlListFromBaseUrl() throws MalformedURLException, URISyntaxException{
+	public void crawlerCanGetUrlListFromBaseUrl() throws URISyntaxException, FailingHttpStatusCodeException, IOException{
 		java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF); 
 		
-		//Given
-		Scrapper scrapper = new Scrapper(baseUrlStr);
+		Scrapper scrapper = new Scrapper(baseUrlStr, WebClientFactory.INSTANCE);
     	CrawlinTask crawlingTask = new CrawlinTask(scrapper);
     	SiteCrawler crawler = new SiteCrawler(crawlingTask);
 		
@@ -40,13 +49,13 @@ public class SiteCrawlerTest{
 		Map<URI, Set<URI>> urlMap = crawler.getSiteMap();
 		
 		//then
-		Assertions.assertThat(urlMap.get(urlBase)).isNotEmpty().contains(urlPricing);
+		Assertions.assertThat(urlMap.get(urlBaseDest)).isNotEmpty().contains(urlPricing);
 	}
 	
 	@Test
 	public void crawlerCanGetUrlListFromChildUrl() throws MalformedURLException, URISyntaxException{
 		//Given
-		Scrapper scrapper = new Scrapper(baseUrlStr);
+		Scrapper scrapper = new Scrapper(baseUrlStr, WebClientFactory.INSTANCE);
     	CrawlinTask crawlingTask = new CrawlinTask(scrapper);
     	SiteCrawler crawler = new SiteCrawler(crawlingTask);
 		
