@@ -14,7 +14,7 @@ public class CrawlerAppRunner
     }
     
     public void run(String baseURI) throws IllegalArgumentException{
-    	WebClientFactory factoryInstance = WebClientFactory.INSTANCE;
+    	WebClientFactory factoryInstance = WebClientFactory.getInstance();
     	Scrapper scrapper = new Scrapper(baseURI, factoryInstance);
     	CrawlinTask crawlingTask = new CrawlinTask(scrapper);
     	SiteCrawler crawler = new SiteCrawler(crawlingTask);

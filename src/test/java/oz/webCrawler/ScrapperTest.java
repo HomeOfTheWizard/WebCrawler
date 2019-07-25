@@ -73,7 +73,7 @@ public class ScrapperTest{
 	@Test
 	public void scrapper_GivenABaseURL_CanGetASingleChildUrl_WhenChildIsRelative() {
 		//Given
-		Scrapper scrapper = new Scrapper(baseUrlStr, WebClientFactory.INSTANCE);
+		Scrapper scrapper = new Scrapper(baseUrlStr, WebClientFactory.getInstance());
 		
 		//when
 		ScrappinURIsResult urlList = scrapper.getURIListfromParentURI(urlAbout);

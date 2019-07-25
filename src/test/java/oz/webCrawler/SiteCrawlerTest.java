@@ -1,6 +1,5 @@
 package oz.webCrawler;
 
-import static org.mockito.Mockito.when;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -14,10 +13,8 @@ import java.util.logging.Level;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mockito;
 
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
-import com.gargoylesoftware.htmlunit.WebClient;
 
 
 public class SiteCrawlerTest{
@@ -29,10 +26,9 @@ public class SiteCrawlerTest{
 	URI urlBase;
 	
 	@Before
-	public void before() throws MalformedURLException, URISyntaxException {
+	public void before(){
 		baseUrlStr = "https://babylonhealth.com";
-		urlBaseDest = URI.create("https://www.babylonhealth.com");
-		urlBase = new URL(baseUrlStr).toURI();
+		urlBaseDest = URI.create("https://www.babylonhealth.com/");
 		urlAbout = URI.create("https://www.babylonhealth.com/about");
 		urlPricing = URI.create("https://www.babylonhealth.com/pricing");
 	}
@@ -41,7 +37,7 @@ public class SiteCrawlerTest{
 	public void crawlerCanGetUrlListFromBaseUrl() throws URISyntaxException, FailingHttpStatusCodeException, IOException{
 		java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF); 
 		
-		Scrapper scrapper = new Scrapper(baseUrlStr, WebClientFactory.INSTANCE);
+		Scrapper scrapper = new Scrapper(baseUrlStr, WebClientFactory.getInstance());
     	CrawlinTask crawlingTask = new CrawlinTask(scrapper);
     	SiteCrawler crawler = new SiteCrawler(crawlingTask);
 		
@@ -55,7 +51,7 @@ public class SiteCrawlerTest{
 	@Test
 	public void crawlerCanGetUrlListFromChildUrl() throws MalformedURLException, URISyntaxException{
 		//Given
-		Scrapper scrapper = new Scrapper(baseUrlStr, WebClientFactory.INSTANCE);
+		Scrapper scrapper = new Scrapper(baseUrlStr, WebClientFactory.getInstance());
     	CrawlinTask crawlingTask = new CrawlinTask(scrapper);
     	SiteCrawler crawler = new SiteCrawler(crawlingTask);
 		

@@ -2,6 +2,7 @@ package oz.webCrawler;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.RecursiveAction;
@@ -67,7 +68,7 @@ public class CrawlinTask extends RecursiveAction{
 	
 	
 	private void treatValidScrappinResult(ScrappinURIsResult scrappinURIsResult) {
-		crawlinResult.putResult(scrappinURIsResult.destinationURI, scrappinURIsResult.getResult()); 	
+		crawlinResult.putResult(scrappinURIsResult.destinationURI, new HashSet<URI>(scrappinURIsResult.getResult())); 	
 		filterChildURISetFromAlreadyCrawledPages(scrappinURIsResult);
 		crawlThroughChildURIs(scrappinURIsResult.getResult());
 	}
