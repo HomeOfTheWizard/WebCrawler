@@ -47,4 +47,9 @@ public class CrawlinResult{
 		return resultMap.containsKey(uri);
 	}
 	
+	public CrawlinResult cleanUpResults() {
+		resultMap.keySet().removeAll(redirectMap.keySet());
+		return this;
+	}
+	
 }

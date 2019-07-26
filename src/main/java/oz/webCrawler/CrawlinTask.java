@@ -95,10 +95,9 @@ public class CrawlinTask extends RecursiveAction{
 	}
 
 	
-	public CrawlinTask cleanUpResults() {
-		this.crawlinResult.getResultMap().keySet().removeAll(this.crawlinResult.getRedirectMap().keySet());
-		return this;
-		
+	public CrawlinResult getResults() {
+		return this.crawlinResult.cleanUpResults(); 
 	}
+	
 
 }

@@ -8,6 +8,7 @@ import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.logging.Level;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
@@ -30,10 +31,13 @@ public class ScrapperTest{
 	URI urlBase;
 	WebClient mockWebClient;
 	HtmlPage mockBaseUrlPage;
+	HtmlPage mockAboutUrlPage;
 	
 	
 	@Before
 	public void before() throws URISyntaxException, FailingHttpStatusCodeException, IOException {
+		java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF); 
+		
 		baseUrlStr = "https://babylonhealth.com";
 		urlAboutStr = "https://www.babylonhealth.com/about";
 		urlPricingStr = "https://www.babylonhealth.com/pricing";
@@ -50,13 +54,16 @@ public class ScrapperTest{
 		
 		String path = new File(".").getCanonicalPath();
 		mockBaseUrlPage = mockWebClient.getPage("file:\\\\" + path + "\\src\\test\\resources\\Home_Babylon_Health.html");
+		mockAboutUrlPage = mockWebClient.getPage("file:\\\\" + path + "\\src\\test\\resources\\About_Babylon_Health.html");
 	}
+	
+	
 
 	@Test
 	public void scrapper_GivenABaseURL_CanGetASingleChildUrl() throws FailingHttpStatusCodeException, MalformedURLException, IOException {
 		//Given
 		WebClient mockWebClient = Mockito.mock(WebClient.class);
-		when(mockWebClient.getPage(baseUrlStr)).thenReturn(mockBaseUrlPage);
+		when(mockWebClient.getPage(urlBase.toURL())).thenReturn(mockBaseUrlPage);
 		
 		WebClientFactory mockWebClientFactory = Mockito.mock(WebClientFactory.class);
 		when(mockWebClientFactory.getWebClient()).thenReturn(mockWebClient);
@@ -71,9 +78,14 @@ public class ScrapperTest{
 	}
 	
 	@Test
-	public void scrapper_GivenABaseURL_CanGetASingleChildUrl_WhenChildIsRelative() {
+	public void scrapper_GivenABaseURL_CanGetASingleChildUrl_WhenChildIsRelative() throws FailingHttpStatusCodeException, MalformedURLException, IOException {
 		//Given
-		Scrapper scrapper = new Scrapper(baseUrlStr, WebClientFactory.getInstance());
+		WebClient mockWebClient = Mockito.mock(WebClient.class);
+		when(mockWebClient.getPage(urlAbout.toURL())).thenReturn(mockAboutUrlPage);
+		
+		WebClientFactory mockWebClientFactory = Mockito.mock(WebClientFactory.class);
+		when(mockWebClientFactory.getWebClient()).thenReturn(mockWebClient);
+		Scrapper scrapper = new Scrapper(baseUrlStr, mockWebClientFactory);
 		
 		//when
 		ScrappinURIsResult urlList = scrapper.getURIListfromParentURI(urlAbout);

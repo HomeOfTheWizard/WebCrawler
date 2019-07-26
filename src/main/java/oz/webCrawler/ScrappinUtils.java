@@ -38,6 +38,7 @@ public class ScrappinUtils{
 				parentURI = page.getUrl().toURI(); 
 		} catch (URISyntaxException e) {
 			e.printStackTrace();
+			System.out.println("destination URI: "+page.getUrl().toString()+" is not a syntactically correct URI");
 		}
 		return parentURI;
 	}
